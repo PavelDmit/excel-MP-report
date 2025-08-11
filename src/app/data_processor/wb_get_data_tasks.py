@@ -2,6 +2,7 @@ import pandas as pd # type: ignore
 import logging
 from typing import Dict
 import aiohttp # type: ignore
+from datetime import datetime, timedelta
 
 from app.api import wb
 
@@ -30,9 +31,7 @@ async def get_orders_df(
         # Получаем сырые данные
         orders_data = await wb.get_wb_orders(
             session=session,
-            api_key=params['API_KEY'],
-            date_from=params.get('date_from'),
-            flag=params.get('flag', 0)
+            api_key=params['API_KEY']
         )
 
         if not orders_data or not isinstance(orders_data, list):
@@ -42,19 +41,18 @@ async def get_orders_df(
         df = pd.DataFrame(orders_data)
         df['PA'] = params['PA']
 
-        # Оптимизация типов данных
-        numeric_cols = ['totalPrice', 'discountPercent', 'priceWithDisc']
-        for col in numeric_cols:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='coerce')
+        # Фильтрация по дате (до четырёх часов ночи понеделиника текущей недели)
+        df['date'] = pd.to_datetime(df['date'], errors='coerce')
+        now = datetime.now()
 
-        date_cols = ['date', 'lastChangeDate']
-        for col in date_cols:
-            if col in df.columns:
-                df[col] = pd.to_datetime(df[col], errors='coerce')
+        date_from = (now - timedelta(days=now.weekday() + 7)).strftime("%Y-%m-%dT00:00:00")
+        df = df[df['date'] > pd.to_datetime(date_from)]
+
+        to_date = (now - timedelta(days=now.weekday())).strftime("%Y-%m-%dT00:00:00")
+        df = df[df['date'] < pd.to_datetime(to_date)]
 
         logger.info(f"Успешно загружено {len(df)} заказов для PA {params['PA']}")
-        return df
+        return df # type: ignore
 
     except Exception as e:
         logger.error(f"Ошибка обработки заказов WB для PA {params['PA']}: {str(e)}", exc_info=True)
@@ -82,8 +80,7 @@ async def get_stocks_df(
         # Получаем сырые данные
         stocks_data = await wb.get_wb_stocks(
             session=session,
-            api_key=params['API_KEY'],
-            date_from=params.get('date_from', '2019-06-20')
+            api_key=params['API_KEY']
         )
 
         if not stocks_data or not isinstance(stocks_data, list):

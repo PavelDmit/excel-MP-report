@@ -3,6 +3,7 @@ import logging
 from typing import Dict, List
 import aiohttp # type: ignore
 import asyncio
+from datetime import datetime, timedelta
 
 from app.api import ozon
 
@@ -108,7 +109,12 @@ async def get_orders_df(
 
             df = pd.DataFrame(data)
             df['PA'] = params['PA']
-            return df
+            df['created_at'] = pd.to_datetime(df['created_at'], errors='coerce').dt.tz_localize(None)
+            now = datetime.now()
+            date_from = (now - timedelta(days=now.weekday() + 7)).strftime("%Y-%m-%dT00:00:00")
+            df = df[df['created_at'] > pd.to_datetime(date_from)]
+
+            return df # type: ignore
 
         except Exception as e:
             logger.error(f"Ошибка обработки {posting_type} заказов для PA {params['PA']}: {str(e)}")

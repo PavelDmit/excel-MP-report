@@ -25,20 +25,12 @@
 - Docker и Docker Compose
 - Python 3.12 (для разработки)
 
-### Запуск в production
+### Запуск
 
 1. Создайте файл `.env` в корне проекта с необходимыми переменными окружения (см. пример ниже)
 2. Запустите сервис:
    ```bash
-   docker-compose -f docker-compose-prod.yml up -d --build
-   ```
-
-### Запуск для разработки
-
-1. Создайте файл `.env` в корне проекта
-2. Запустите сервис:
-   ```bash
-   docker-compose -f docker-compose-dev.yml up -d --build
+   docker-compose up -d --build
    ```
 
 Сервис будет доступен по адресу: `http://localhost:8000`
@@ -102,8 +94,7 @@ YANDEX_API_BUSINESS_ID_WISTROVA=your_business_id
 
 ```
 excel-MP-report/
-├── docker-compose-prod.yml    # Конфигурация Docker для production
-├── docker-compose-dev.yml     # Конфигурация Docker для разработки
+├── docker-compose.yml         # Конфигурация Docker compose
 ├── src/                       # Исходный код
 │   ├── app/                   # Основное приложение
 │   │   ├── api/               # API клиенты для маркетплейсов

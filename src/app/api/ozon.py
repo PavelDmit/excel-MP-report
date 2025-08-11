@@ -76,12 +76,12 @@ async def get_ozon_posting_fbo_list(
     to: Optional[str] = None
 ) -> List[Dict]:
     """Получает список FBO-заказов Ozon."""
-    # Установка временного диапазона
+    # Установка временного диапазона (прошлая неделя)
     now = datetime.now()
     if not since:
-        since = (now - timedelta(days=1)).strftime("%Y-%m-%dT04:00:00.000Z") if now.hour < 4 else now.strftime("%Y-%m-%dT04:00:00.000Z")
+        since = (now - timedelta(days=now.weekday() + 7)).strftime("%Y-%m-%dT00:00:00.000Z")
     if not to:
-        to = now.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        to = (now - timedelta(days=now.weekday())).strftime("%Y-%m-%dT00:00:00.000Z")
 
     # Разбивка на суточные интервалы
     results = []
@@ -125,12 +125,12 @@ async def get_ozon_posting_fbs_list(
     offset: int = 0
 ) -> List[Dict]:
     """Получает список FBS-заказов Ozon."""
-    # Установка временного диапазона
+    # Установка временного диапазона (прошлая неделя)
     now = datetime.now()
     if not since:
-        since = (now - timedelta(days=1)).strftime("%Y-%m-%dT04:00:00.000Z") if now.hour < 4 else now.strftime("%Y-%m-%dT04:00:00.000Z")
+        since = (now - timedelta(days=now.weekday() + 7)).strftime("%Y-%m-%dT04:00:00.000Z")
     if not to:
-        to = now.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        to = (now - timedelta(days=now.weekday())).strftime("%Y-%m-%dT04:00:00.000Z")
 
     url = "https://api-seller.ozon.ru/v3/posting/fbs/list"
     headers = {"Client-Id": client_id, "Api-Key": api_key}

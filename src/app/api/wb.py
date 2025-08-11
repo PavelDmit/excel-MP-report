@@ -34,10 +34,10 @@ async def get_wb_orders(
         logger.error("Флаг должен быть 0 или 1")
         return []
 
-    # Установка даты по умолчанию
+    # Установка даты по умолчанию (начало прошлой недели)
     if date_from is None:
         now = datetime.now()
-        date_from = (now - timedelta(days=1)).strftime("%Y-%m-%dT04:00:00") if now.hour < 4 else now.strftime("%Y-%m-%dT04:00:00")
+        date_from = (now - timedelta(days=now.weekday() + 7)).strftime("%Y-%m-%dT00:00:00")
 
     # Формирование запроса
     url = "https://statistics-api.wildberries.ru/api/v1/supplier/orders"

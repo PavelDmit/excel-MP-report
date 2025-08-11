@@ -1,6 +1,7 @@
 import aiohttp # type: ignore
 import logging
 from typing import List, Dict, Optional
+from datetime import datetime, timedelta
 
 
 logger = logging.getLogger(__name__)
@@ -57,7 +58,9 @@ async def get_yandex_orders(
     session: aiohttp.ClientSession,
     campaign_id: str,
     api_key: str,
-    page_token: Optional[str] = None
+    page_token: Optional[str] = None,
+    fromDate: Optional[str] = None,
+    toDate: Optional[str] = None
 ) -> List[Dict]:
     """
     Получает данные о заказах Yandex Market.
@@ -71,9 +74,15 @@ async def get_yandex_orders(
     Возвращает:
         Список словарей с данными о заказах
     """
-    url = f"https://api.partner.market.yandex.ru/campaigns/{campaign_id}/orders"
+    now = datetime.now()
+    if not fromDate:
+        fromDate = (now - timedelta(days=now.weekday() + 7)).strftime("%Y-%m-%d")
+    if not toDate:
+        toDate = (now - timedelta(days=now.weekday())).strftime("%Y-%m-%d")
+
+    url = f"https://api.partner.market.yandex.ru/campaigns/{campaign_id}/orders?fromDate={fromDate}&toDate={toDate}"
     if page_token:
-        url += f"?page_token={page_token}"
+        url += f"&page_token={page_token}"
 
     headers = {"Api-Key": api_key}
     result = []
@@ -87,7 +96,7 @@ async def get_yandex_orders(
                 # Обработка пагинации
                 next_page_token = data.get("paging", {}).get("nextPageToken")
                 if next_page_token:
-                    next_page = await get_yandex_orders(session, campaign_id, api_key, next_page_token)
+                    next_page = await get_yandex_orders(session, campaign_id, api_key, next_page_token, fromDate, toDate)
                     result.extend(next_page)
             else:
                 error = await response.json()

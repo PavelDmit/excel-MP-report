@@ -141,7 +141,7 @@ async def generate_excel_file():
         stocks_data = await get_stocks(session, additional_data)
 
         output = BytesIO()
-        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer: # type: ignore
             orders_data['wb_orders'].to_excel(writer, sheet_name='WB_orders', index=False)
             orders_data['ozon_orders'].to_excel(writer, sheet_name='OZON_orders', index=False)
             orders_data['yandex_orders'].to_excel(writer, sheet_name='YANDEX_orders', index=False)
@@ -166,7 +166,11 @@ async def download_report():
 
     except Exception as e:
         logger.error(f"Неожиданная ошибка: {e}")
-        return 'ОШИБКА. Что-то пошло не так. Повторите позже'
+        return Response(
+            content="ОШИБКА. Что-то пошло не так. Повторите позже",
+            status_code=500,
+            media_type="text/plain"
+        )
 
 
 if __name__ == "__main__":
